@@ -308,9 +308,16 @@ async def _generate_proposal_and_ask(
 
         # LinkedIn search — inject as add_if_empty field update if found
         await msg.reply_text("🔍 Searching for LinkedIn profile...")
-        linkedin_url = await asyncio.get_running_loop().run_in_executor(
-            _executor, linkedin_finder.find_linkedin_url, extract
-        )
+        try:
+            linkedin_url = await asyncio.wait_for(
+                asyncio.get_running_loop().run_in_executor(
+                    _executor, linkedin_finder.find_linkedin_url, extract
+                ),
+                timeout=15,
+            )
+        except asyncio.TimeoutError:
+            log.warning("LinkedIn search timed out")
+            linkedin_url = None
         if linkedin_url:
             current_linkedin = chosen_record.linkedin_url if chosen_record else None
             from crm_ingest.models import FieldUpdate

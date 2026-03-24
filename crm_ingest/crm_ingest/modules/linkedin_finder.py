@@ -45,7 +45,7 @@ def find_linkedin_url(extract: "PersonExtract") -> str | None:
     log.info("LinkedIn search query: %s", query)
 
     try:
-        results = DDGS().text(query, max_results=5)
+        results = DDGS(timeout=10).text(query, max_results=5)
         for r in results:
             url = r.get("href", "")
             if _LINKEDIN_RE.match(url):

@@ -948,6 +948,19 @@ async def handle_undo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await msg.reply_text(f"Undo failed: {exc}")
 
 
+async def handle_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    menu_text = (
+        "*Rolodex CRM Bot — Commands*\n\n"
+        "✍️ _Just send me a message_ — paste a transcript, note, or voice-to-text to ingest a new contact or update.\n\n"
+        "🔍 `/find <query>` — search your contacts (e.g. `/find people in SF`)\n"
+        "⏰ `/reminders` — show today's follow-ups and upcoming birthdays\n"
+        "↩️ `/undo` — undo your last CRM action\n"
+        "🚫 `/cancel` — cancel the current operation\n"
+        "📋 `/menu` — show this menu"
+    )
+    await update.effective_message.reply_text(menu_text, parse_mode=ParseMode.MARKDOWN)
+
+
 # ── Fallback / cancel ─────────────────────────────────────────────────────────
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -1001,6 +1014,7 @@ def main() -> None:
     app.add_handler(CommandHandler("find", handle_find))
     app.add_handler(CommandHandler("undo", handle_undo))
     app.add_handler(CommandHandler("reminders", handle_reminders))
+    app.add_handler(CommandHandler("menu", handle_menu))
 
     # Daily follow-up reminder at 9:00 AM
     import datetime

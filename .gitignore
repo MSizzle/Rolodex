@@ -23,3 +23,7 @@ venv/
 .vscode/
 .idea/
 *.swp
+
+# Runtime logs & backups
+*.log
+*.bak

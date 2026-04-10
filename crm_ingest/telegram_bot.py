@@ -65,6 +65,9 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
 )
+# Silence httpx/httpcore: their INFO logs leak the bot token in URL paths.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
 
 # ── Conversation states ────────────────────────────────────────────────────────
@@ -948,6 +951,18 @@ async def handle_undo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await msg.reply_text(f"Undo failed: {exc}")
 
 
+async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Global error handler: log the traceback and tell the user something went wrong."""
+    log.exception("Unhandled exception in handler", exc_info=context.error)
+    if isinstance(update, Update) and update.effective_message is not None:
+        try:
+            await update.effective_message.reply_text(
+                "⚠️ Something went wrong handling that. Please try again — if it keeps happening, use /cancel and start over."
+            )
+        except Exception:
+            log.exception("Failed to send error message to user")
+
+
 async def handle_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     menu_text = (
         "*Rolodex CRM Bot — Commands*\n\n"
@@ -1015,6 +1030,7 @@ def main() -> None:
     app.add_handler(CommandHandler("undo", handle_undo))
     app.add_handler(CommandHandler("reminders", handle_reminders))
     app.add_handler(CommandHandler("menu", handle_menu))
+    app.add_error_handler(handle_error)
 
     # Daily follow-up reminder at 9:00 AM
     import datetime
